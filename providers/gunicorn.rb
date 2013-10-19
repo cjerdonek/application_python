@@ -83,6 +83,13 @@ action :before_deploy do
       gunicorn_command = new_resource.virtualenv.nil? ? "gunicorn" : "#{::File.join(new_resource.virtualenv, "bin", "gunicorn")}"
       base_command = "#{gunicorn_command} #{new_resource.app_module}"
     end
+    template_info = new_resource.supervisor_template
+    if !template_info[:cookbook].nil?
+      template_cookbook template_info[:cookbook]
+    end
+    if !template_info[:source].nil?
+      template_source template_info[:source]
+    end
     command "#{base_command} -c #{new_resource.application.path}/shared/gunicorn_config.py"
     directory new_resource.directory.nil? ? ::File.join(new_resource.path, "current") : new_resource.directory
     autostart new_resource.autostart
