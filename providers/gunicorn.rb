@@ -90,6 +90,7 @@ action :before_deploy do
     if !template_info[:source].nil?
       template_source template_info[:source]
     end
+    supervisord_logfile new_resource.supervisor_logfile
     command "#{base_command} -c #{new_resource.application.path}/shared/gunicorn_config.py"
     directory new_resource.directory.nil? ? ::File.join(new_resource.path, "current") : new_resource.directory
     autostart new_resource.autostart
