@@ -58,7 +58,12 @@ action :before_migrate do
   if new_resource.requirements
     Chef::Log.info("Installing using requirements file: #{new_resource.requirements}")
     pip_cmd = ::File.join(new_resource.virtualenv, 'bin', 'pip')
-    execute "#{pip_cmd} install --source=#{Dir.tmpdir} -r #{new_resource.requirements}" do
+    pip_options = new_resource.pip_options.nil? ? '' : new_resource.pip_options
+    # TODO: replace the execute block below with use of the python cookbook's python_pip resource.
+    # Also see the following related issues:
+    #   https://tickets.opscode.com/browse/COOK-1823
+    #   https://tickets.opscode.com/browse/COOK-2437
+    execute "#{pip_cmd} install #{pip_options} --source=#{Dir.tmpdir} -r #{new_resource.requirements}" do
       cwd new_resource.release_path
       # seems that if we don't set the HOME env var pip tries to log to /root/.pip, which fails due to permissions
       # setting HOME also enables us to control pip behavior on per-project basis by dropping off a pip.conf file there
@@ -122,6 +127,7 @@ def install_packages
       virtualenv new_resource.virtualenv
       user new_resource.owner
       group new_resource.group
+      options new_resource.pip_options if !new_resource.pip_options.nil?
       action :install
     end
   end

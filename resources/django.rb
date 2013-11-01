@@ -23,6 +23,8 @@ include ApplicationCookbook::ResourceBase
 attribute :database_master_role, :kind_of => [String, NilClass], :default => nil
 attribute :packages, :kind_of => [Array, Hash], :default => []
 attribute :requirements, :kind_of => [NilClass, String, FalseClass], :default => nil
+# We default to nil so we can fall back to the default in python_pip's options attribute.
+attribute :pip_options, :kind_of => [NilClass, String], :default => nil
 attribute :legacy_database_settings, :kind_of => [TrueClass, FalseClass], :default => false
 attribute :settings, :kind_of => Hash, :default => {}
 # Actually defaults to "settings.py.erb", but nil means it wasn't set by the user

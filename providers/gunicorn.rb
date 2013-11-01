@@ -28,7 +28,7 @@ action :before_compile do
 
   install_packages
 
-  django_resource = new_resource.application.sub_resources.select{|res| res.type == :django}.first
+  django_resource = get_django_resource
   gunicorn_install "gunicorn-#{new_resource.application.name}" do
     virtualenv django_resource ? django_resource.virtualenv : new_resource.virtualenv
   end
@@ -114,11 +114,17 @@ end
 
 protected
 
+def get_django_resource
+  new_resource.application.sub_resources.select{|res| res.type == :django}.first
+end
+
 def install_packages
+  django_resource = get_django_resource
   new_resource.packages.each do |name, ver|
     python_pip name do
       version ver if ver && ver.length > 0
       virtualenv new_resource.virtualenv
+      options django_resource.pip_options if !django_resource.pip_options.nil?
       action :install
     end
   end
@@ -145,7 +151,13 @@ def install_requirements
     else
       pip_cmd = ::File.join(new_resource.virtualenv, 'bin', 'pip')
     end
-    execute "#{pip_cmd} install --src=#{Dir.tmpdir} -r #{new_resource.requirements}" do
+    django_resource = get_django_resource
+    pip_options = django_resource.pip_options.nil? ? '' : django_resource.pip_options
+    # TODO: replace the execute block below with use of the python cookbook's python_pip resource.
+    # Also see the following related issues:
+    #   https://tickets.opscode.com/browse/COOK-1823
+    #   https://tickets.opscode.com/browse/COOK-2437
+    execute "#{pip_cmd} install #{pip_options} --src=#{Dir.tmpdir} -r #{new_resource.requirements}" do
       cwd new_resource.release_path
     end
   else
