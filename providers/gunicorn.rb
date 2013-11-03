@@ -93,7 +93,9 @@ action :before_deploy do
     if !template_info[:source].nil?
       template_source template_info[:source]
     end
-    supervisord_logfile new_resource.supervisor_logfile
+    if !new_resource.supervisor_logfile.nil?
+      supervisord_logfile new_resource.supervisor_logfile
+    end
     command "#{base_command} -c #{new_resource.application.path}/shared/gunicorn_config.py"
     # The directory to which supervisor should temporarily chdir before exec'ing the child.
     directory new_resource.directory.nil? ? ::File.join(new_resource.path, "current") : new_resource.directory
