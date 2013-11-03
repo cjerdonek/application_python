@@ -26,6 +26,16 @@ action :before_compile do
 
   include_recipe 'python'
 
+  # We create the virtualenv now to make it available early, for example
+  # during the before_compile stage of the gunicorn subresource when
+  # gunicorn may be installed in this virtualenv.
+  python_virtualenv new_resource.virtualenv do
+    path new_resource.virtualenv
+    owner new_resource.owner
+    group new_resource.group
+    action :create
+  end
+
   new_resource.migration_command "#{::File.join(new_resource.virtualenv, "bin", "python")} manage.py syncdb --noinput" if !new_resource.migration_command
 
   new_resource.symlink_before_migrate.update({
@@ -114,13 +124,6 @@ end
 protected
 
 def install_packages
-  python_virtualenv new_resource.virtualenv do
-    path new_resource.virtualenv
-    owner new_resource.owner
-    group new_resource.group
-    action :create
-  end
-
   new_resource.packages.each do |name, ver|
     python_pip name do
       version ver if ver && ver.length > 0
