@@ -129,7 +129,7 @@ def install_packages
   new_resource.packages.each do |name, ver|
     python_pip name do
       version ver if ver && ver.length > 0
-      virtualenv new_resource.virtualenv
+      virtualenv django_resource ? django_resource.virtualenv : new_resource.virtualenv
       options django_resource.pip_options if !django_resource.pip_options.nil?
       action :install
     end
